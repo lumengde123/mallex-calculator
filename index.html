@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#f4f7fb" />
+<meta name="description" content="MallEX 算力卡每日产出与余额推算计算器：支持 35 天 / 40 天两套规则、持有算力卡、手动购买事件与条件自动购买，实时推算未来每日产出、余额与购买额度。" />
+<meta name="format-detection" content="telephone=no" />
+<title>MallEX 算力卡计算器 · 每日产出与余额推算</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='26' fill='%2312b981'/%3E%3Ctext x='50' y='70' font-size='58' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%23fff'%3EM%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="./styles.css?v=20" />
+</head>
+<body>
+<div class="glow glow-a" aria-hidden="true"></div>
+<div class="glow glow-b" aria-hidden="true"></div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">M</span>
+      <div class="brand-text">
+        <h1><span class="brand-full">MallEX 算力卡计算器</span><span class="brand-short">MallEX 计算</span></h1>
+        <p>每日产出 · 余额推算 · 购买规划</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="hist-group" role="group" aria-label="撤销重做">
+        <button class="icon-btn" id="undoBtn" type="button" title="上一步（Ctrl+Z）" aria-label="上一步" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></svg>
+        </button>
+        <button class="icon-btn" id="redoBtn" type="button" title="下一步（Ctrl+Shift+Z）" aria-label="下一步" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h3"/></svg>
+        </button>
+      </div>
+      <button class="ghost-btn profile-btn" id="profileBtn" type="button" title="切换 / 新建存档">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M4 10h16"/></svg>
+        <span id="profileName">我的账号</span>
+      </button>
+      <button class="ghost-btn" id="settingsBtn" type="button" title="设置">设置</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ 概览 ============ -->
+    <section class="stats" id="stats" aria-label="当前概览"></section>
+
+    <!-- ============ 起始设置 ============ -->
+    <section class="card">
+      <div class="card-head">
+        <h2>起始设置</h2>
+        <span class="hint">改动即时重算</span>
+        <button class="fold-btn" type="button" data-fold="base" aria-label="折叠 / 展开"></button>
+      </div>
+      <div class="field-grid">
+        <label class="field">
+          <span>起始余额（MEX）</span>
+          <input id="balanceInput" type="number" inputmode="decimal" min="0" step="0.000001" placeholder="0" />
+        </label>
+        <label class="field">
+          <span>起算日</span>
+          <input id="startInput" type="date" />
+        </label>
+        <label class="field span2">
+          <span>推算天数</span>
+          <div class="horizon-row">
+            <select id="horizonInput">
+              <option value="35">35 天</option>
+              <option value="45">45 天</option>
+              <option value="90">90 天</option>
+              <option value="135">135 天</option>
+              <option value="365">365 天</option>
+              <option value="custom">自定义…</option>
+            </select>
+            <input id="horizonCustom" type="number" inputmode="numeric" min="1" max="1500" step="1" placeholder="天数" hidden />
+          </div>
+        </label>
+      </div>
+      <p class="field-note">起始余额 = 起算日那天的余额（表格第一行）；当天及以后的买卖、扣款都在它基础上继续算。</p>
+
+      <div class="sub-head">
+        <h3>起算日已有的算力卡</h3>
+        <span class="pill" id="holdPill">0 张</span>
+      </div>
+      <div class="list" id="holdList"></div>
+      <form class="add-form" id="holdForm" autocomplete="off">
+        <div class="field-grid">
+          <label class="field span2">
+            <span>卡种</span>
+            <select id="holdCard"></select>
+          </label>
+          <label class="field narrow">
+            <span>数量</span>
+            <input id="holdQty" type="number" inputmode="numeric" min="1" max="99" step="1" value="1" />
+          </label>
+          <label class="field">
+            <span>起始日期</span>
+            <input id="holdDate" type="date" />
+          </label>
+          <label class="field span2">
+            <span>周期规则</span>
+            <select id="holdRule">
+              <option value="auto">自动（购买时活跃度 &gt; 100 用 40 天）</option>
+              <option value="old">强制 35 天（旧版）</option>
+              <option value="new">强制 40 天（新版）</option>
+            </select>
+          </label>
+        </div>
+        <button class="primary-btn" type="submit">＋ 添加算力卡</button>
+      </form>
+    </section>
+
+    <!-- ============ 今日持有（只读） ============ -->
+    <section class="card">
+      <div class="card-head">
+        <h2>今日持有</h2>
+        <span class="pill" id="todayPill">0 张</span>
+        <button class="fold-btn" type="button" data-fold="today" aria-label="折叠 / 展开"></button>
+      </div>
+      <div class="today-grid" id="todayList"></div>
+    </section>
+
+    <!-- ============ 购买计划 ============ -->
+    <section class="card">
+      <div class="card-head">
+        <h2>购买计划</h2>
+        <span class="hint">事件参与后续推算</span>
+        <button class="fold-btn" type="button" data-fold="plan" aria-label="折叠 / 展开"></button>
+      </div>
+      <div class="seg" role="tablist" aria-label="购买计划类型">
+        <button class="seg-btn active" type="button" data-seg="manual" role="tab" aria-selected="true">手动购买</button>
+        <button class="seg-btn" type="button" data-seg="auto" role="tab" aria-selected="false">条件自动</button>
+      </div>
+
+      <!-- 手动购买 -->
+      <div class="seg-panel active" id="panel-manual">
+        <form class="add-form" id="buyForm" autocomplete="off">
+          <div class="field-grid">
+            <label class="field">
+              <span>购买日期</span>
+              <input id="buyDate" type="date" />
+            </label>
+            <label class="field span2">
+              <span>卡种</span>
+              <select id="buyCard"></select>
+            </label>
+            <label class="field narrow">
+              <span>数量</span>
+              <input id="buyQty" type="number" inputmode="numeric" min="1" max="99" step="1" value="1" />
+            </label>
+          </div>
+          <button class="primary-btn" id="buySubmit" type="submit">＋ 添加购买事件</button>
+          <button class="ghost-btn small cancel-edit" id="buyCancel" type="button" hidden>取消编辑</button>
+        </form>
+        <div class="list" id="buyList"></div>
+      </div>
+
+      <!-- 条件自动 -->
+      <div class="seg-panel" id="panel-auto">
+        <p class="panel-tip">当余额 ≥ 买入价且仍有剩余额度时，该卡在生效区间内每天自动买入 <b>1 张</b>。</p>
+        <form class="add-form" id="autoForm" autocomplete="off">
+          <div class="field-grid">
+            <label class="field span2">
+              <span>卡种</span>
+              <select id="autoCard"></select>
+            </label>
+            <label class="field narrow">
+              <span>最多买</span>
+              <input id="autoMax" type="number" inputmode="numeric" min="1" max="99" step="1" value="1" />
+            </label>
+            <label class="field">
+              <span>生效起</span>
+              <input id="autoFrom" type="date" />
+            </label>
+            <label class="field">
+              <span>生效止</span>
+              <input id="autoTo" type="date" />
+            </label>
+          </div>
+          <button class="primary-btn" type="submit">＋ 添加自动规则</button>
+        </form>
+        <div class="list" id="autoList"></div>
+      </div>
+    </section>
+
+    <!-- ============ M 币交易（收在右下角浮层里，见页面底部 #coinSheet） ============ -->
+
+    <!-- ============ 每日推算 ============ -->
+    <section class="card">
+      <div class="card-head">
+        <h2>每日推算</h2>
+        <div class="head-actions">
+          <button class="ghost-btn small" id="viewToggle" type="button" aria-pressed="false">仅事件</button>
+          <button class="ghost-btn small" id="exportBtn" type="button">导出 CSV</button>
+        </div>
+        <button class="fold-btn" type="button" data-fold="days" aria-label="折叠 / 展开"></button>
+      </div>
+
+      <div class="quota-strip" id="quotaStrip" aria-label="购买额度剩余"></div>
+
+      <p class="table-tip">
+        <span class="tip-main">点绿色标签买入 1 张 · 点买入事件撤销</span>
+        <span class="scroll-hint" id="scrollHint">← 左右滑动查看可购列 →</span>
+      </p>
+      <div class="day-head" aria-hidden="true">
+        <span>日期</span>
+        <span class="dh-prod">当日产出</span>
+        <span class="dh-bal">当日余额</span>
+      </div>
+      <div class="day-list" id="dayBody"></div>
+
+      <div class="pager" id="pager"></div>
+      <div class="summary" id="summary"></div>
+    </section>
+
+    <!-- ============ 规则速查 ============ -->
+    <details class="card rules-card">
+      <summary>算力卡规则速查表</summary>
+      <div class="table-wrap">
+        <table class="day-table rules-table" id="rulesTable">
+          <thead>
+            <tr>
+              <th scope="col">卡种</th>
+              <th scope="col" class="num">买入价</th>
+              <th scope="col" class="num">到期本息</th>
+              <th scope="col" class="num">每日产出<br><small>35 天</small></th>
+              <th scope="col" class="num">每日产出<br><small>40 天</small></th>
+              <th scope="col" class="num">额度</th>
+              <th scope="col" class="num">活跃度</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <ul class="rule-notes">
+        <li>购买当天不计产出，<b>次日开始产出</b>；到期时间 = 起始时间 + 持有天数。</li>
+        <li>11 月 1 日 — 12 月 1 日期间，购买时 <b>活跃度 ≤ 100</b> 适用 35 天旧版规则。</li>
+        <li>12 月 1 日前 <b>活跃度 &gt; 100</b> 的，适用 40 天新版规则（每日产出摊薄，总本息不变）。</li>
+        <li>活跃度 = 当前持有中算力卡的活跃度之和；表格中的「额度」为累计可兑换上限。</li>
+      </ul>
+    </details>
+
+    <footer class="foot">
+      <p>纯前端计算 · 数据仅保存在本机浏览器</p>
+    </footer>
+  </main>
+</div>
+
+<div class="sheet" id="profileSheet" hidden>
+  <div class="sheet-mask" data-close-sheet></div>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-head">
+      <h3 id="sheetTitle">存档</h3>
+      <button class="icon-btn" type="button" data-close-sheet aria-label="关闭">✕</button>
+    </div>
+    <p class="field-note">每个存档保存一套独立的余额、算力卡、购买计划与 M 币交易。数据只存在这台设备的浏览器里，换设备或清理浏览器数据会丢失，也不会自动同步。</p>
+    <div class="profile-list" id="profileList"></div>
+    <button class="primary-btn" id="newProfileBtn" type="button">+ 新建空存档</button>
+
+    <div class="io-box">
+      <p class="field-note" id="ioNote">换浏览器 / 换设备时，把当前账号导出成一段文本（会自动复制），在另一处粘贴后点「导入」即可恢复。</p>
+      <textarea class="io-area" id="ioArea" rows="3" spellcheck="false" placeholder="导出后这里会出现一串 MEX1: 开头的文本；导入时把文本粘贴到这里，再点「导入」"></textarea>
+      <div class="io-actions">
+        <button class="primary-btn" id="ioExportBtn" type="button">导出并复制</button>
+        <button class="ghost-btn small" id="ioImportBtn" type="button">导入</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="settingsSheet" hidden>
+  <div class="sheet-mask" data-close-settings></div>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="sheet-head">
+      <h3 id="settingsTitle">设置</h3>
+      <button class="icon-btn" type="button" data-close-settings aria-label="关闭">✕</button>
+    </div>
+
+    <div class="set-row">
+      <div class="set-main">
+        <div class="set-title">省略过去数据</div>
+        <div class="set-desc">开启后每日数据从今天开始，不展示起算日到昨天那几天的行。</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="skipPastToggle" />
+        <span class="switch-track"><span class="switch-dot"></span></span>
+      </label>
+    </div>
+
+    <div class="set-row">
+      <div class="set-main">
+        <div class="set-title">重置当前存档</div>
+        <div class="set-desc">清空余额、算力卡、购买计划与 M 币交易，回到初始状态。此操作可撤销。</div>
+      </div>
+      <button class="ghost-btn danger" id="resetBtn" type="button">重置</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="coinSheet" hidden>
+  <div class="sheet-mask" data-close-coin-sheet></div>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="coinSheetTitle">
+    <div class="sheet-head">
+      <h3 id="coinSheetTitle">M 币交易</h3>
+      <span class="pill" id="coinPill">0 笔</span>
+      <button class="icon-btn" type="button" data-close-coin-sheet aria-label="关闭">✕</button>
+    </div>
+    <div id="coinSheetBody">
+      <section class="card" id="coinCard">
+        <div class="list" id="coinList"></div>
+
+        <form class="add-form" id="coinForm" autocomplete="off">
+          <div class="field-grid">
+            <label class="field">
+              <span>方向</span>
+              <select id="coinSide">
+                <option value="buy">买入 MEX（充入）</option>
+                <option value="sell">卖出 MEX（提出）</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>日期</span>
+              <input id="coinDate" type="date" />
+            </label>
+            <label class="field">
+              <span>数量（MEX）</span>
+              <input id="coinAmount" type="number" inputmode="decimal" min="0" step="any" value="100" />
+            </label>
+          </div>
+          <div class="field-grid two">
+            <label class="field">
+              <span>MEX 兑美元</span>
+              <input id="coinMexUsd" type="number" inputmode="decimal" min="0" step="0.000001" placeholder="如 1.9" />
+            </label>
+            <label class="field">
+              <span>美元兑人民币</span>
+              <input id="coinUsdCny" type="number" inputmode="decimal" min="0" step="0.0001" placeholder="如 7.2" />
+            </label>
+          </div>
+          <p class="field-note" id="cnyNote">汇率只用于折算人民币，可留空。</p>
+          <p class="calc-preview" id="coinPreview"></p>
+          <button class="primary-btn" id="coinSubmit" type="submit">＋ 添加 M 币交易</button>
+          <button class="ghost-btn small cancel-edit" id="coinCancel" type="button" hidden>取消编辑</button>
+        </form>
+      </section>
+    </div>
+  </div>
+</div>
+
+<button class="fab-mini" id="scrollFab" type="button" aria-label="直达底部" title="直达底部">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 5v14M6 13l6 6 6-6"/>
+  </svg>
+</button>
+
+<button class="fab-mini" id="todayFab" type="button" aria-label="回到今天" title="回到今天">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>
+    <circle cx="12" cy="16" r="1.6" fill="currentColor" stroke="none"/>
+  </svg>
+</button>
+
+<button class="fab" id="coinFab" type="button" aria-label="规划 M 币买卖">
+  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5" />
+  </svg>
+  <span>M 币</span>
+</button>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="./app.js?v=27"></script>
+</body>
+</html>

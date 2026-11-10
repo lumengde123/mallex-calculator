@@ -1,0 +1,7 @@
+﻿# 本地临时文件
+_preview.html
+_size.html
+*.broken.html
+# 系统
+Thumbs.db
+.DS_Store
