@@ -128,10 +128,15 @@
 
   function sampleStore() {
     const s = defaultStore();
-    s.balance = 100;
-    s.holdings = [{ id: uid(), cardId: 'l1', qty: 2, date: todayStr(), rule: 'auto' }];
+    s.balance = 5;
+    s.horizon = 45;
+    s.holdings = [{ id: uid(), cardId: 'l1', qty: 1, date: todayStr(), rule: 'auto' }];
     return s;
   }
+
+  // 内置案例账号「德德（案例）」：一份真实的长期计划，供首次打开时对照
+  const CASE_CODE =
+    'MEX1:eyJ2IjoxLCJuYW1lIjoi5b635b63IiwiZGF0YSI6eyJiYWxhbmNlIjoyOTUuOTI4MTU3LCJzdGFydERhdGUiOiIyMDI2LTExLTAxIiwiaG9yaXpvbiI6OTAsImhvbGRpbmdzIjpbeyJpZCI6ImJqZmg2MnIiLCJjYXJkSWQiOiJlMSIsInF0eSI6MSwiZGF0ZSI6IjIwMjYtMTEtMDEiLCJydWxlIjoib2xkIn1dLCJtYW51YWwiOlt7ImlkIjoiczMzMmJzcSIsImNhcmRJZCI6ImgxIiwicXR5IjoxLCJkYXRlIjoiMjAyNi0xMS0xMSJ9LHsiaWQiOiJsdWpia3RtIiwiY2FyZElkIjoiaDEiLCJxdHkiOjEsImRhdGUiOiIyMDI2LTExLTIwIn0seyJpZCI6ImwxNG1tejIiLCJjYXJkSWQiOiJlMSIsInF0eSI6MSwiZGF0ZSI6IjIwMjYtMTItMDcifSx7ImlkIjoiMXlpanhxbCIsImNhcmRJZCI6ImExIiwicXR5IjoxLCJkYXRlIjoiMjAyNi0xMi0wOSJ9LHsiaWQiOiJha2JlcGFlIiwiY2FyZElkIjoiYTEiLCJxdHkiOjEsImRhdGUiOiIyMDI2LTEyLTEyIn0seyJpZCI6ImZqZmFweGQiLCJjYXJkSWQiOiJhMSIsInF0eSI6MSwiZGF0ZSI6IjIwMjYtMTItMTUifSx7ImlkIjoianN1OTlhYyIsImNhcmRJZCI6ImgxIiwicXR5IjoxLCJkYXRlIjoiMjAyNi0xMi0yMiJ9LHsiaWQiOiIxbHoydThkIiwiY2FyZElkIjoibTEiLCJxdHkiOjEsImRhdGUiOiIyMDI2LTEyLTE2In0seyJpZCI6ImM1d3hpYzkiLCJjYXJkSWQiOiJtMSIsInF0eSI6MSwiZGF0ZSI6IjIwMjYtMTItMTcifSx7ImlkIjoiM2lybHpubSIsImNhcmRJZCI6ImwyIiwicXR5Ijo0LCJkYXRlIjoiMjAyNi0xMi0xNiJ9LHsiaWQiOiJ4ZWVvOHZvIiwiY2FyZElkIjoiaDEiLCJxdHkiOjEsImRhdGUiOiIyMDI2LTEyLTMxIn0seyJpZCI6IjhjMGVkanQiLCJjYXJkSWQiOiJsMSIsInF0eSI6NSwiZGF0ZSI6IjIwMjYtMTItMTYifSx7ImlkIjoiaTl5YW03ZiIsImNhcmRJZCI6Im0xIiwicXR5IjoxLCJkYXRlIjoiMjAyNi0xMi0yMyJ9LHsiaWQiOiJpY2tvY2h5IiwiY2FyZElkIjoibTEiLCJxdHkiOjEsImRhdGUiOiIyMDI2LTEyLTI0In0seyJpZCI6InlxY3Z5bnEiLCJjYXJkSWQiOiJsMSIsInF0eSI6MywiZGF0ZSI6IjIwMjYtMTEtMTEifSx7ImlkIjoiNDUzeWl4aCIsImNhcmRJZCI6ImwxIiwicXR5IjozLCJkYXRlIjoiMjAyNi0xMi0yMyJ9LHsiaWQiOiJoNmNvZnR2IiwiY2FyZElkIjoiZTEiLCJxdHkiOjEsImRhdGUiOiIyMDI3LTAxLTE3In0seyJpZCI6ImlmNWF2dzkiLCJjYXJkSWQiOiJhMSIsInF0eSI6MSwiZGF0ZSI6IjIwMjctMDEtMTkifSx7ImlkIjoiMWhtMzQ2eiIsImNhcmRJZCI6ImExIiwicXR5IjoxLCJkYXRlIjoiMjAyNy0wMS0yMiJ9LHsiaWQiOiJyNTk3M3gwIiwiY2FyZElkIjoiYTEiLCJxdHkiOjEsImRhdGUiOiIyMDI3LTAxLTI1In0seyJpZCI6ImdmM2FscjciLCJjYXJkSWQiOiJtMSIsInF0eSI6MSwiZGF0ZSI6IjIwMjctMDEtMjYifSx7ImlkIjoianlpMGZsZCIsImNhcmRJZCI6ImwyIiwicXR5Ijo0LCJkYXRlIjoiMjAyNy0wMS0yNiJ9LHsiaWQiOiIwZ2h0M2kxIiwiY2FyZElkIjoibDEiLCJxdHkiOjUsImRhdGUiOiIyMDI3LTAxLTI2In0seyJpZCI6ImhrN2MzZWsiLCJjYXJkSWQiOiJtMSIsInF0eSI6MSwiZGF0ZSI6IjIwMjctMDEtMjcifSx7ImlkIjoieThzaThieSIsImNhcmRJZCI6ImgxIiwicXR5IjoxLCJkYXRlIjoiMjAyNy0wMi0wMSJ9LHsiaWQiOiJqbGV6NjdyIiwiY2FyZElkIjoibTEiLCJxdHkiOjEsImRhdGUiOiIyMDI3LTAyLTAyIn0seyJpZCI6ImJqem53OTMiLCJjYXJkSWQiOiJsMSIsInF0eSI6MywiZGF0ZSI6IjIwMjctMDItMDIifSx7ImlkIjoicGR0NWZ2cCIsImNhcmRJZCI6Im0xIiwicXR5IjoxLCJkYXRlIjoiMjAyNy0wMi0wMyJ9XSwiYXV0byI6W10sImNvaW5zIjpbeyJpZCI6InNlZWQwMTExIiwiZGF0ZSI6IjIwMjYtMTEtMDEiLCJzaWRlIjoiYnV5IiwiYW1vdW50IjoyMDAwLCJtZXhVc2QiOjAsInVzZENueSI6MH1dLCJyYXRlcyI6eyJtZXhVc2QiOjAsInVzZENueSI6MH0sInZpZXciOiJhbGwiLCJza2lwUGFzdCI6ZmFsc2V9fQ==';
 
   /* ---------------- 多存档（localStorage） ---------------- */
   let profiles = { activeId: '', list: [] };
@@ -188,10 +193,20 @@
     }
     const id = uid();
     const data = normalizeStore(legacy) || sampleStore();
-    profiles = {
-      activeId: id,
-      list: [{ id, name: '我的账号', updatedAt: Date.now(), data }],
-    };
+    const list = [{ id, name: '我的账号', updatedAt: Date.now(), data }];
+    // 首次打开额外内置一份真实案例，方便对照「长期计划长什么样」
+    if (!legacy) {
+      try {
+        const c = decodeStore(CASE_CODE);
+        const caseData = normalizeStore(c.data);
+        if (caseData) {
+          list.push({ id: uid(), name: '德德（案例）', updatedAt: Date.now() - 1000, data: caseData });
+        }
+      } catch {
+        /* 案例解析失败不影响主流程 */
+      }
+    }
+    profiles = { activeId: id, list };
     writeProfiles();
     // 迁移完成即丢弃旧键，避免之后误以为「还有一份旧数据」
     if (legacy) localStorage.removeItem(LS_KEY);
