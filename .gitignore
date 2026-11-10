@@ -5,3 +5,4 @@ _size.html
 # 系统
 Thumbs.db
 .DS_Store
+.vercel
